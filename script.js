@@ -1,4 +1,3 @@
-
 TESTER = document.getElementById('tester');
 
 Plotly.plot( TESTER, [{
