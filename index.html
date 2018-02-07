@@ -3,12 +3,72 @@
   <link rel="stylesheet" href="style.css" />
   <!-- Plotly.js -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script src ="script.js"></script>
+  <!-- MathJax-->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script>
 </head>
+<script>
+var theForm = document.forms["rest_input"];
+function getG()
+{
+    //Assume form with id="theform"
+    var theForm = document.forms["rest_input"];
+    //Get a reference to the TextBox
+    var conductanceNa = theForm.elements["gna"];
+    var sodium =0;
+    //If the textbox is not blank
+    if(conductanceNa.value!="")
+    {
+        sodium = parseInt(conductanceNa.value);
+    }
+    var conductanceK = theForm.elements["gk"]
+    var potassium = 0;
+    if(conductanceK.value!="")
+    {
+        potassium = parseInt(conductanceK.value);
+    }
+    
+return sodium/potassium;
+};
+function getGRatio() {
+  var conductanceR = getG()
+  document.getElementById('conductance_ratio').innerHTML =
+                                        "Conductance Ratio (Na to K): "+conductanceR;
+                                        
+  LINE = document.getElementById('linear');
+  var y1 = conductanceR * -90 + 1;
+  var y2 = conductanceR * 100 + 1;
+  var trace1 = {
+    x: [-90,100],
+    y: [y1,y2],
+    type: 'scatter'
+  };
+  var layout = {
+    xaxis: {range: [-80, 70]},
+    yaxis: {range: [-50, 50]}
+  };
+  Plotly.newPlot(LINE, [trace1])
+};
+
+
+</script>
 
 <body>
-  <div id="tester" style="width:600px;height:250px;"></div>
-
   <h1>The Resting Potential Graph</h1>
+  <p>
+    At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\).
+  </p>
+  <form action= "" id = "rest_input" onsubmit="return false;">  
+    Conductance of Sodium<input type="text"  name="gna" id="gna" onchange="getG()" />
+    Conductance of Potassium<input type="text"  name="gk" id="gk" onchange="getG()"/>
+    <button onclick = "getGRatio()"> Calculate Conductance Ratio</button>
+    Concentration of Intracellular Sodium 
+    Concentration of Extracellular Sodium
+    Concentration of Intracellular Sodium
+    Concentration of Extracellular Potassium
+  </form>
+
+  <div id = "conductance_ratio"></div>
+  <div id = "linear"> </div>
   
 </body>
+
