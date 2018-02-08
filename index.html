@@ -107,15 +107,91 @@ function getGRatio() {
     name: "Membrane"
   }
   var layout = {
-    xaxis: {range: [-100, 100]},
-    yaxis: {range: [-100, 100]}
+    title: "Two-Ion Model of Resting Potential",
+    xaxis: {range: [-100, 100], title: "Membrane Potential (mV)"},
+    yaxis: {range: [-100, 100], title: "Current"}
   };
   Plotly.newPlot(LINE, [traceNa, traceK, traceM], layout)
 };
-window.onload = sampleData;
+function naPlot() {
+  var NAAP = document.getElementById("Na_Plot");
+  var trace1 = {
+    x: [-80,-70,-60,-50,-40,-30,-20,-10,0,10,20,30,40,50,60],
+    y: [0,0,0,-10,-20,-30,-60,-90,-75,-50,-25,0,25,50,75],
+    type: 'scatter'
+  };
+  var layout = {
+    title: "Current-Voltage relation for the voltage-gated sodium current",
+    xaxis: {title: "Membrane Potential"},
+    yaxis: {title: "Current"},
+    hovermode: "closest"
+  }
+  Plotly.newPlot("Na_Plot", [trace1],layout);
+  var points = [];
+  var conductances = [];
+  var annotations = [];
+  NAAP.on("plotly_click", function(trace1){
+    var pts = '';
+    var cond = '';
+    for(var i=0; i < trace1.points.length; i++){
+        pts = ("("+trace1.points[i].x + ", " + trace1.points[i].y + ")");
+        cond = Math.abs(parseFloat(trace1.points[i].y)-0)/Math.abs(parseFloat(trace1.points[i].x)-30);
+        annotation = {x: trace1.points[i].x,
+              y: trace1.points[i].y};
+    };
+    if (points.length == 0 || points.length == 1) {
+      points.push(pts);
+    } else {
+      points[1] = points[0];
+      points[0] = pts;
+    }
+    if (conductances.length == 0 || conductances.length == 1) {
+      conductances.push(cond);
+    } else {
+      conductances[1] = conductances[0];
+      conductances[0] = cond;
+    }
+    if (annotations.length == 0 || annotations.length == 1) {
+      annotations.push(annotation);
+      Plotly.relayout("Na_Plot",{annotations: annotations})
+    } else {
+      annotations[1] = annotations[0];
+      annotations[0] = annotation;
+      Plotly.relayout("Na_Plot",{annotations: annotations})
+    }
+    document.getElementById("pt1").innerHTML = "Point 1 is " + points[0] + " and the conductance is " + conductances[0];
+    document.getElementById("pt2").innerHTML = "Point 2 is " + points[1]+ " and the conductance is " + conductances[1];
+    document.getElementById("clearpoints").onclick = function clearPoints() {
+        points = [];
+        conductances = [];
+        annotations = [];
+        document.getElementById("pt1").innerHTML = "Point 1 is " + points[0]+ " and the conductance is " + conductances[0];
+        document.getElementById("pt2").innerHTML = "Point 2 is " + points[1]+ " and the conductance is " + conductances[1];
+        document.getElementById("analysis").innerHTML = "";
+        Plotly.relayout("Na_Plot",{annotations: annotations})
+      };
+    if (Math.abs(conductances[0]-conductances[1])>0){
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has increased";
+    }
+    if (conductances[0]==conductances[1]){
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has stayed the same";
+    }
+    if (Math.abs(conductances[0]-conductances[1])<0){
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has decreased";
+    }
+  });
+  
+};
+function newLoad(){
+  naPlot()
+  sampleData()
+}
+window.onload = newLoad;
+
 </script>
 
 <body>
+  <div id = "header"></div>
   <div id = "restpotdiv">
     <h1>The Resting Potential Graph</h1>
     <p>
@@ -147,9 +223,19 @@ window.onload = sampleData;
     </p>
     <p>
       The voltage-gated potassium channels are only open positive to the potassium Nernst Potential, while the voltage-gated sodium channels are open both positive and negative to the sodium Nernst Potential. 
+      As the membrane depolarizes, the conductance of the cell to sodium increases as more voltage-gated channels open. At the same time, the sodium driving force decreases as the membrane potential approaches the sodium Nernst Potential. So, conductance and driving force for sodium are changing in different directions. Conductance will stop increasing when all of the voltage-gated sodium channels are open. When the membrane potential is more positive than the sodium Nernst Potential, the driving force will be directing sodium into the cell. 
+      As the membrane depolarizes, conductance of the cell to potassium increases as more voltage-gated potassium channels open. Additionally, the potassium driving force increases as the membrane depolarizes away from the potassium Nernst potential. 
     </p>
+    <div id = "Na_Plot"></div>
+    <p>
+      Click on two points on the graph. The calculations about changes in conductance are done from left to right regardless of the order that the points were clicked on. 
+    </p>
+    <button id = "clearpoints">Clear selected points</button>
+    <div id = "pt1"></div>
+    <div id = "pt2"></div>
+    <div id = "analysis"></div>
   </div>
-  <div id = "credit"></div>
+  <div id = "footer"></div>
   
 </body>
 
