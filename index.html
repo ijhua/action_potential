@@ -5,6 +5,8 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <!-- MathJax-->
   <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script>
+<link href="https://fonts.googleapis.com/css?family=Abel|Roboto" rel="stylesheet"> 
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <script>
 var theForm = document.forms["rest_input"];
@@ -75,59 +77,79 @@ function getGRatio() {
   var conductanceNa = parseFloat(theForm.elements["gna"].value);
   var conductanceK = parseFloat(theForm.elements["gk"].value);
   var nernstNa = getNernstNa();
-  document.getElementById('Nernst_Na').innerHTML = "Nernst Potential of Sodium: "+ nernstNa;
+  document.getElementById('Nernst_Na').innerHTML = "Nernst Potential of Sodium: "+ nernstNa + " mV";
   var Vm = getVRest();
   var yna1 = conductanceNa * (-900 - nernstNa);
   var yna2 = conductanceNa * (1000 - nernstNa);
   var traceNa = {
-    x: [-900,1000],
-    y: [yna1,yna2],
+    x: [nernstNa, -900,1000],
+    y: [0, yna1,yna2],
     type: 'scatter',
     name: 'Sodium'
   };
   var nernstK = getNernstK();
-  document.getElementById('Nernst_K').innerHTML = "Nernst Potential of Potassium: " + nernstK;
-  document.getElementById('v_m').innerHTML = "V_rest = " + Vm;
+  document.getElementById('Nernst_K').innerHTML = "Nernst Potential of Potassium: " + nernstK + " mV";
+  document.getElementById('v_m').innerHTML = "V_rest = " + Vm + " mV";
   var yk1 = conductanceK * (-900 - nernstK);
   var yk2 = conductanceK * (1000 - nernstK);
   var traceK = {
-    x: [-900,1000],
-    y: [yk1, yk2],
+    x: [nernstK, -900,1000],
+    y: [0, yk1, yk2],
     type: 'scatter',
     name: "Potassium"
   };
+  var ym1 = yna1 + yk1;
+  var ym2 = yna2 + yk2;
+  var traceM = {
+    x: [Vm, -900,1000],
+    y: [0, ym1, ym2],
+    type: 'scatter',
+    name: "Membrane"
+  }
   var layout = {
     xaxis: {range: [-100, 100]},
     yaxis: {range: [-100, 100]}
   };
-  Plotly.newPlot(LINE, [traceNa, traceK], layout)
+  Plotly.newPlot(LINE, [traceNa, traceK, traceM], layout)
 };
 window.onload = sampleData;
 </script>
 
 <body>
-  <h1>The Resting Potential Graph</h1>
-  <p>
-    At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\). In the graph below, I've filled on some arbritrary values for a cell with a 10:1 conductance ratio of potassium to sodium, and some arbritrary values of concentration. 
-  </p>
-  <form action= "" id = "rest_input" onsubmit="return false;">  
-    Conductance of Sodium<input type="text"  name="gna" id="gna" onchange="getG()" />
-    Conductance of Potassium<input type="text"  name="gk" id="gk" onchange="getG()"/>
-    <button onclick = "getGRatio()"> Calculate Conductance Ratio</button>
-    <br />
-    Concentration of Intracellular Sodium <input type="text"  name="NaIn" id="NaIn" onchange="getNernstNa()" />
-    Concentration of Extracellular Sodium <input type="text"  name="NaOut" id="NaOut" onchange="getNernstNa()" />
-    <br />
-    Concentration of Intracellular Potassium <input type="text"  name="KIn" id="KIn" onchange="getNernstK()" />
-    Concentration of Extracellular Potassium <input type="text"  name="KOut" id="KOut" onchange="getNernstK()" />
-    <button onclick = "getGRatio()">Calculate Sodium and Potassium Nernst Potentials</button>
-  </form>
+  <div id = "restpotdiv">
+    <h1>The Resting Potential Graph</h1>
+    <p>
+      At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\). In the graph below, I've filled on some arbritrary values for a cell with a 10:1 conductance ratio of potassium to sodium, and some arbritrary values of concentration. 
+    </p>
+    <form action= "" id = "rest_input" onsubmit="return false;">  
+      Conductance of Sodium<input type="text"  name="gna" id="gna" onchange="getG()" />
+      Conductance of Potassium<input type="text"  name="gk" id="gk" onchange="getG()"/>
+      <button onclick = "getGRatio()"> Calculate Conductance Ratio</button>
+      <br />
+      Concentration of Intracellular Sodium <input type="text"  name="NaIn" id="NaIn" onchange="getNernstNa()" />
+      Concentration of Extracellular Sodium <input type="text"  name="NaOut" id="NaOut" onchange="getNernstNa()" />
+      <br />
+      Concentration of Intracellular Potassium <input type="text"  name="KIn" id="KIn" onchange="getNernstK()" />
+      Concentration of Extracellular Potassium <input type="text"  name="KOut" id="KOut" onchange="getNernstK()" />
+      <button onclick = "getGRatio()">Calculate Sodium and Potassium Nernst Potentials</button>
+    </form>
 
-  <div id = "conductance_ratio"></div>
-  <div id = "Nernst_Na"></div>
-  <div id =  "Nernst_K"></div>
-  <div id =  "v_m"></div>
-  <div id = "linear"> </div>
+    <div id = "conductance_ratio"></div>
+    <div id = "Nernst_Na"></div>
+    <div id =  "Nernst_K"></div>
+    <div id =  "v_m"></div>
+    <div id = "linear"> </div>
+  </div>
+  <div id = "apdiv">
+    <h1>The Action Potential</h1>
+    <p>
+      Now, we are interested in the how various parameters that determine the direction and magnitude of Na and K current vary with voltage, and how that variation differs between the two channel types. Voltage-gated channels work very differently from resting channels. 
+    </p>
+    <p>
+      The voltage-gated potassium channels are only open positive to the potassium Nernst Potential, while the voltage-gated sodium channels are open both positive and negative to the sodium Nernst Potential. 
+    </p>
+  </div>
+  <div id = "credit"></div>
   
 </body>
 
