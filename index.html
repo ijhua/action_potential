@@ -8,6 +8,22 @@
 </head>
 <script>
 var theForm = document.forms["rest_input"];
+function sampleData() {
+  var theForm = document.forms["rest_input"];
+  var conductanceNa = 0.1;
+  var conductanceK = 1;
+  var concentrationNaIn = 11;
+  var concentrationNaOut = 28;
+  var concentrationKIn = 36;
+  var concentrationKOut = 10;
+  theForm.elements["gna"].value = conductanceNa;
+  theForm.elements["gk"].value = conductanceK;
+  theForm.elements["NaIn"].value = concentrationNaIn;
+  theForm.elements["NaOut"].value = concentrationNaOut;
+  theForm.elements["KIn"].value = concentrationKIn;
+  theForm.elements["KOut"].value = concentrationKOut;
+  return getGRatio()
+};
 function getG()
 {
     //Assume form with id="theform"
@@ -16,58 +32,101 @@ function getG()
     var conductanceNa = theForm.elements["gna"];
     var sodium =0;
     //If the textbox is not blank
-    if(conductanceNa.value!="")
-    {
-        sodium = parseInt(conductanceNa.value);
-    }
-    var conductanceK = theForm.elements["gk"]
+        sodium = parseFloat(conductanceNa.value);
+    var conductanceK = theForm.elements["gk"];
     var potassium = 0;
-    if(conductanceK.value!="")
-    {
-        potassium = parseInt(conductanceK.value);
-    }
-    
+        potassium = parseFloat(conductanceK.value);
+
 return sodium/potassium;
 };
+function getNernstNa() {
+  var theForm = document.forms["rest_input"];
+  var concentrationNaIn = theForm.elements["NaIn"];
+  var concentrationNaOut = theForm.elements["NaOut"];
+  var Na = 0;
+    Na = -59 * Math.log(parseFloat(concentrationNaIn.value)/concentrationNaOut.value);
+return Na;
+};
+function getNernstK() {
+  var theForm = document.forms["rest_input"];
+  var concentrationKIn = theForm.elements["KIn"];
+  var concentrationKOut = theForm.elements["KOut"];
+  var K = 0;
+    K = -59 * Math.log(parseFloat(concentrationKIn.value)/concentrationKOut.value);
+return K;
+};
+function getVRest() {
+  var theForm = document.forms["rest_input"];
+  var gna = theForm.elements["gna"];
+  var gk = theForm.elements["gk"];
+  var nernstna = getNernstNa();
+  var nernstk = getNernstK();
+  var Vm = 0;
+    Vm = (parseFloat(gk.value)/(parseFloat(gk.value)+parseFloat(gna.value))) * nernstk + (parseFloat(gna.value)/(parseFloat(gk.value)+parseFloat(gna.value))) * nernstna;
+  return Vm;
+};
 function getGRatio() {
-  var conductanceR = getG()
+  var theForm = document.forms["rest_input"];
+  var conductanceR = getG();
   document.getElementById('conductance_ratio').innerHTML =
                                         "Conductance Ratio (Na to K): "+conductanceR;
                                         
   LINE = document.getElementById('linear');
-  var y1 = conductanceR * -90 + 1;
-  var y2 = conductanceR * 100 + 1;
-  var trace1 = {
-    x: [-90,100],
-    y: [y1,y2],
-    type: 'scatter'
+  var conductanceNa = parseFloat(theForm.elements["gna"].value);
+  var conductanceK = parseFloat(theForm.elements["gk"].value);
+  var nernstNa = getNernstNa();
+  document.getElementById('Nernst_Na').innerHTML = "Nernst Potential of Sodium: "+ nernstNa;
+  var Vm = getVRest();
+  var yna1 = conductanceNa * (-900 - nernstNa);
+  var yna2 = conductanceNa * (1000 - nernstNa);
+  var traceNa = {
+    x: [-900,1000],
+    y: [yna1,yna2],
+    type: 'scatter',
+    name: 'Sodium'
+  };
+  var nernstK = getNernstK();
+  document.getElementById('Nernst_K').innerHTML = "Nernst Potential of Potassium: " + nernstK;
+  document.getElementById('v_m').innerHTML = "V_rest = " + Vm;
+  var yk1 = conductanceK * (-900 - nernstK);
+  var yk2 = conductanceK * (1000 - nernstK);
+  var traceK = {
+    x: [-900,1000],
+    y: [yk1, yk2],
+    type: 'scatter',
+    name: "Potassium"
   };
   var layout = {
-    xaxis: {range: [-80, 70]},
-    yaxis: {range: [-50, 50]}
+    xaxis: {range: [-100, 100]},
+    yaxis: {range: [-100, 100]}
   };
-  Plotly.newPlot(LINE, [trace1])
+  Plotly.newPlot(LINE, [traceNa, traceK], layout)
 };
-
-
+window.onload = sampleData;
 </script>
 
 <body>
   <h1>The Resting Potential Graph</h1>
   <p>
-    At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\).
+    At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\). In the graph below, I've filled on some arbritrary values for a cell with a 10:1 conductance ratio of potassium to sodium, and some arbritrary values of concentration. 
   </p>
   <form action= "" id = "rest_input" onsubmit="return false;">  
     Conductance of Sodium<input type="text"  name="gna" id="gna" onchange="getG()" />
     Conductance of Potassium<input type="text"  name="gk" id="gk" onchange="getG()"/>
     <button onclick = "getGRatio()"> Calculate Conductance Ratio</button>
-    Concentration of Intracellular Sodium 
-    Concentration of Extracellular Sodium
-    Concentration of Intracellular Sodium
-    Concentration of Extracellular Potassium
+    <br />
+    Concentration of Intracellular Sodium <input type="text"  name="NaIn" id="NaIn" onchange="getNernstNa()" />
+    Concentration of Extracellular Sodium <input type="text"  name="NaOut" id="NaOut" onchange="getNernstNa()" />
+    <br />
+    Concentration of Intracellular Potassium <input type="text"  name="KIn" id="KIn" onchange="getNernstK()" />
+    Concentration of Extracellular Potassium <input type="text"  name="KOut" id="KOut" onchange="getNernstK()" />
+    <button onclick = "getGRatio()">Calculate Sodium and Potassium Nernst Potentials</button>
   </form>
 
   <div id = "conductance_ratio"></div>
+  <div id = "Nernst_Na"></div>
+  <div id =  "Nernst_K"></div>
+  <div id =  "v_m"></div>
   <div id = "linear"> </div>
   
 </body>
