@@ -3,4 +3,8 @@ h1 {
 }
 body {
   font-family: Times, 'Abel', sans-serif;
+  max-width: 993px;
+  margin: 0 auto;
+  position: relative;
+  display: block;
 }

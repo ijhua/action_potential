@@ -135,7 +135,11 @@ function naPlot() {
     var cond = '';
     for(var i=0; i < trace1.points.length; i++){
         pts = ("("+trace1.points[i].x + ", " + trace1.points[i].y + ")");
-        cond = Math.abs(parseFloat(trace1.points[i].y)-0)/Math.abs(parseFloat(trace1.points[i].x)-30);
+        if (parseFloat(trace1.points[i].x) == 30) {
+          cond = 2.5;
+        } else {
+          cond = Math.abs(parseFloat(trace1.points[i].y))/Math.abs(parseFloat(trace1.points[i].x)-30);
+        }
         annotation = {x: trace1.points[i].x,
               y: trace1.points[i].y};
     };
@@ -171,13 +175,13 @@ function naPlot() {
         Plotly.relayout("Na_Plot",{annotations: annotations})
       };
     if (Math.abs(conductances[0]-conductances[1])>0){
-      document.getElementById("analysis").innerHTML = "The conductance between the two points has increased";
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has increased and the driving force of sodium has decreased. ";
     }
     if (conductances[0]==conductances[1]){
-      document.getElementById("analysis").innerHTML = "The conductance between the two points has stayed the same";
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has stayed the same and the driving force of sodium has decreased. ";
     }
     if (Math.abs(conductances[0]-conductances[1])<0){
-      document.getElementById("analysis").innerHTML = "The conductance between the two points has decreased";
+      document.getElementById("analysis").innerHTML = "The conductance between the two points has decreased and the driving force of sodium has decreased. ";
     }
   });
   
@@ -196,6 +200,9 @@ window.onload = newLoad;
     <h1>The Resting Potential Graph</h1>
     <p>
       At rest, the current for each ion is \(I_{ion} = g_{ion} (V_{membrane}-V_{ion})\). In the graph below, I've filled on some arbritrary values for a cell with a 10:1 conductance ratio of potassium to sodium, and some arbritrary values of concentration. 
+    </p>
+    <p>
+      Keep in mind, extremely negative and positive values of membrane potential are quite unrealistic, as the cell would probably die.
     </p>
     <form action= "" id = "rest_input" onsubmit="return false;">  
       Conductance of Sodium<input type="text"  name="gna" id="gna" onchange="getG()" />
